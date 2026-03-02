@@ -1,0 +1,46 @@
+name: Build, Deploy and Purge cache workflow
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # build step if necessary
+      # - name: Build script
+      #   run: npm run build
+
+      - name: Upload to Cloudflare R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+        run: |
+          aws s3 cp xyz.js \
+            s3://$R2_BUCKET_NAME/xyz.js \
+            --endpoint-url https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com \
+            --content-type "application/javascript" \
+            --cache-control "public, max-age=3600"
+
+      - name: Purge cache and verify
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+          CF_SCRIPT_URL: ${{ secrets.CF_SCRIPT_URL }}
+        run: bash scripts/purge-cache.sh
