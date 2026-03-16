@@ -1,0 +1,17 @@
+{
+  "name": "cache-purge-script",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dev-script.js",
+  "scripts": {
+    "build": "terser dev-script.js -c -m -o script.js",
+    "test": "echo \"No tests configured yet\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "terser": "^5.44.1"
+  }
+}
